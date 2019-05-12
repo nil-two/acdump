@@ -1,0 +1,11 @@
+{
+  "name": "acdump",
+  "version": "0.1.0",
+  "description": "Dump an autocompleter for shells",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "nil2 <nil2@nil2.org> (https://nil2.org/)",
+  "license": "MIT"
+}
