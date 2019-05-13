@@ -6,6 +6,85 @@ const getopts    = require("getopts");
 const jsonschema = require("jsonschema");
 const yaml       = require("js-yaml");
 
+class Command {
+    static get cmdName() {
+        return "acdump";
+    }
+
+    static get usage() {
+        return `
+        usage: ${this.cmdName} [option(s)] <source-file>
+        dump an autocompleter for shells.
+
+        options:
+          -o. --output=OUTPUT   output file
+          -s. --shell=SHELL     target shell (default: bash)
+              --help            print usage
+        `.replace(/^ {8}/gm, "").trim();
+    }
+
+    static execute(argv) {
+        let unknownOption = null;
+        const options = getopts(argv, {
+            string: [
+                "output",
+                "shell",
+            ],
+            boolean: [
+                "help",
+            ],
+            default: {
+                output: "",
+                shell: "bash",
+                help: false,
+            },
+            alias: {
+                output: "o",
+                shell:  "s",
+            },
+            unknown: function(option) {
+                if (unknownOption === null) {
+                    unknownOption = option;
+                }
+                return false;
+            }
+        });
+        if (unknownOption !== null) {
+            console.error("%s", `${this.cmdName}: unrecognized option: '${unknownOption}'`);
+            console.error("%s", `Try '${this.cmdName} --help' for more information.`);
+            process.exit(1);
+        }
+        if (options.help) {
+            console.log("%s", this.usage);
+            process.exit(0);
+        }
+        if (!AutoCompleterDumper.supportedShells.some(shell => shell === options.shell)) {
+            console.error("%s", `${this.cmdName}: '${options.shell}' doesn't supported yet`);
+            process.exit(1);
+        }
+        if (options._.length === 0) {
+            console.error("%s", `${this.cmdName}: no input source-file`);
+            process.exit(1);
+        }
+
+        try {
+            const sourceFile = options._[0];
+            const rawConfig  = fs.readFileSync(sourceFile, "utf8");
+            const config     = yaml.safeLoad(rawConfig);
+
+            const script = AutoCompleterDumper.dumpScript(config, options.shell);
+            if (options.output === "") {
+                console.log("%s", script);
+            } else {
+                fs.writeFileSync(options.output, script + "\n");
+            }
+        } catch (err) {
+            console.error("%s", `${this.cmdName}: ${err.name}: ${err.message}`);
+            process.exit(1);
+        }
+    }
+}
+
 class AutoCompleterDumper {
     static get supportedShells() {
         return ["bash"]
@@ -332,85 +411,6 @@ class AutoCompleterDumper {
                 return this.dumpBashScript(config);
             default:
                 return "";
-        }
-    }
-}
-
-class Command {
-    static get cmdName() {
-        return "acdump";
-    }
-
-    static get usage() {
-        return `
-        usage: ${this.cmdName} [option(s)] <source-file>
-        dump an autocompleter for shells.
-          
-        options:
-          -o. --output=OUTPUT   output file
-          -s. --shell=SHELL     target shell (default: bash)
-              --help            print usage
-        `.replace(/^ {8}/gm, "").trim();
-    }
-
-    static execute(argv) {
-        let unknownOption = null;
-        const options = getopts(argv, {
-            string: [
-                "output",
-                "shell",
-            ],
-            boolean: [
-                "help",
-            ],
-            default: {
-                output: "",
-                shell: "bash",
-                help: false,
-            },
-            alias: {
-                output: "o",
-                shell:  "s",
-            },
-            unknown: function(option) {
-                if (unknownOption === null) {
-                    unknownOption = option;
-                }
-                return false;
-            }
-        });
-        if (unknownOption !== null) {
-            console.error("%s", `${this.cmdName}: unrecognized option: '${unknownOption}'`);
-            console.error("%s", `Try '${this.cmdName} --help' for more information.`);
-            process.exit(1);
-        }
-        if (options.help) {
-            console.log("%s", this.usage);
-            process.exit(0);
-        }
-        if (!AutoCompleterDumper.supportedShells.some(shell => shell === options.shell)) {
-            console.error("%s", `${this.cmdName}: '${options.shell}' doesn't supported yet`);
-            process.exit(1);
-        }
-        if (options._.length === 0) {
-            console.error("%s", `${this.cmdName}: no input source-file`);
-            process.exit(1);
-        }
-
-        try {
-            const sourceFile = options._[0];
-            const rawConfig  = fs.readFileSync(sourceFile, "utf8");
-            const config     = yaml.safeLoad(rawConfig);
-
-            const script = AutoCompleterDumper.dumpScript(config, options.shell);
-            if (options.output === "") {
-                console.log("%s", script);
-            } else {
-                fs.writeFileSync(options.output, script + "\n");
-            }
-        } catch (err) {
-            console.error("%s", `${this.cmdName}: ${err.name}: ${err.message}`);
-            process.exit(1);
         }
     }
 }
