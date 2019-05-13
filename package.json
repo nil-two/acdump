@@ -9,5 +9,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "nil2 <nil2@nil2.org> (https://nil2.org/)",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "getopts": "^2.2.4",
+    "js-yaml": "^3.13.1",
+    "jsonschema": "^1.2.4"
+  }
 }
