@@ -333,7 +333,7 @@ class AutoCompleterDumper {
         if (hasShortOpts) {
             const shorts = shortOpts.map(o => o["short"]).reduce((a,b) => a.concat(b), []);
             a.push(`    opt)`);
-            a.push(`      lines=$(compgen -W '${shorts.map(s => this.shEscapeInQuote(s)).join(" ")}' -- "$cur") && while read -r line; do COMPREPLY+=( "$(printf "%q\n" "$line")" ); done <<< "$lines"`);
+            a.push(`      lines=$(compgen -W '${shorts.map(s => this.shEscapeInQuote(s)).join(" ")}' -- "$cur") && while read -r line; do COMPREPLY+=( "$(printf "%q\\n" "$line")" ); done <<< "$lines"`);
             a.push(`      ;;`);
             a.push(`    opt_arg)`);
             a.push(`      case $prev in`);
